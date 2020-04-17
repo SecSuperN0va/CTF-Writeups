@@ -79,7 +79,7 @@ Our analysis has retrieved us the first weapon code! Let's test is out in a runn
 
 ![Winning Stage 1](https://raw.githubusercontent.com/SecSuperN0va/CTF-Writeups/master/Flare-on/2019/01%20-%20Memecat%20Battlestation/images/mcb_stage_1_success.png)
 
-![Stage 2 Prompt for MemeCatBattlestation](https://raw.githubusercontent.com/SecSuperN0va/CTF-Writeups/master/Flare-on/2019/01%20-%20Memecat%20Battlestation/images/mcb_stage_2_prompt.png)
+![Stage 2 Prompt for MemeCatBattlestation](https://raw.githubusercontent.com/SecSuperN0va/CTF-Writeups/master/Flare-on/2019/01%20-%20Memecat%20Battlestation/images/mcb_stage_2_prompt_.png)
 
 As you can see, we've now progressed to the second stage, and can begin work on finding the second weapon code.
 
