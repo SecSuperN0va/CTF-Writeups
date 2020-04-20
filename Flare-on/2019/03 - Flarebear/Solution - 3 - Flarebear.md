@@ -188,7 +188,7 @@ making sure to keep track of how many of each you have entered. I suggest the fo
 
 The final time you press `clean`, you should be greated with the following screen, containing the flag for this level.
 
-![Flarebear - jdgui - success](https://raw.githubusercontent.com/SecSuperN0va/CTF-Writeups/master/Flare-on/2019/03%20-%20Flarebear/images/flarebear_flag.png)
+![Flarebear - jdgui - success](https://raw.githubusercontent.com/SecSuperN0va/CTF-Writeups/master/Flare-on/2019/03%20-%20Flarebear/images/flarebear_success.png)
 
 
 ## Tools Used
