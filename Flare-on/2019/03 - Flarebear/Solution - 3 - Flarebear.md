@@ -110,20 +110,20 @@ An interesting feature to note is that when an "activity" is saved (i.e. "f", "c
 the corresponding character is appended to a string in the persistent application preferences, effectively keeping track of the order 
 in which actions were performed. This string is also used to retrieve the quantity of each action when `getStat()` is called.
 
+![Flarebear - jdgui - saveActivity](https://raw.githubusercontent.com/SecSuperN0va/CTF-Writeups/master/Flare-on/2019/03%20-%20Flarebear/images/flarebear_save_activity.png)
+
 #### Flag Decryption
 
-Looking through the class structure, we come across the function `FlareBearActivity.danceWithFlag()`, which perform decryption of some data 
+Looking through the class structure, we come across the function `FlareBearActivity.danceWithFlag()`, which performs decryption of some data 
 using a password provided by the `FlareBearActivity.getPassword()` function. 
 
 ![Flarebear - jdgui - danceWithFlag](https://raw.githubusercontent.com/SecSuperN0va/CTF-Writeups/master/Flare-on/2019/03%20-%20Flarebear/images/flarebear_dance_with_flag.png)
 
-The `getPassword()` function makes use of three attributes or "stats" that are stored elsewhere ("f", "p", and "c"), corresponding with the actions feed, 
-play, and clean, to construct the final password. Presumably the three stats need to be the correct values for the password to be generated correctly, and 
-thus decrypt the data that it likely to contain the flag for this level.
+The `getPassword()` function makes use of the quantities of the three activities ("f", "p", and "c"), to construct the final password. 
+The three quantities must be the correct values for the password to be generated correctly, and thus decrypt the data that is 
+likely to contain the flag for this level.
 
 ![Flarebear - jdgui - getPassword](https://raw.githubusercontent.com/SecSuperN0va/CTF-Writeups/master/Flare-on/2019/03%20-%20Flarebear/images/flarebear_get_password.png)
-
-The number of `feed` actions is modulo'd with 9, and the number of `clean` actions is modulo'd with 7
 
 Brute-forcing a password of this complexity does not sound like something we want to do, at least not as a first attempt. Instead, let's shift our focus to the conditions 
 that need to be met for the `danceWithFlag()` function to be called, since it is likely that this function only get's called when it has a decent chance of being able 
