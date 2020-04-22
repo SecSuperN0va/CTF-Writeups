@@ -127,7 +127,7 @@ The remaining code is short-circuited if this value is incorrect.
 
 ![dnschess - IDA - AI - getNextMove Loopback Check](https://raw.githubusercontent.com/SecSuperN0va/CTF-Writeups/master/Flare-on/2019/04%20-%20Dnschess/images/dnschess_ida_ai_loopback_check.png)
 
-Second, the final byte of the address is checked to ensure it is an odd number, short-circuiting to return 2 if the final byte is even.
+Second, the final byte of the address is checked to ensure it is an even number, short-circuiting to return 2 if the final byte is odd.
 
 ![dnschess - IDA - AI - getNextMove Oddity Check](https://raw.githubusercontent.com/SecSuperN0va/CTF-Writeups/master/Flare-on/2019/04%20-%20Dnschess/images/dnschess_ida_ai_odd_check.png)
 
@@ -207,18 +207,98 @@ In this section, we will be focussing on identifying the turns which need to be 
 
 I am working on the assumption that the packet capture in `capture.pcap` contains the appropriate turns in some shape or form.
 
-To begin, I installed the scapy module for Python, and wrote a simple script to load the data from `capture.pcap`.
+To begin, I installed the scapy module for Python, and wrote a simple script to load the data from `capture.pcap`. With the packets loaded, the script 
+iterates over them, ignoring any that do not meet the conditions necessary for a valid move to be made. The code to do this looks like this:
 
-I then parsed the packets to remove any responses which failed to meet any of the conditions necessary for a valid move to be made.
+```python
+for packet in rdpcap(pcap_file_path):
+    # ignore the packet if it isn't a DNS response
+    if not packet.haslayer(DNSRR) or not isinstance(packet.an, DNSRR):
+        continue
 
-With this new list of moves, I was able to reconstruct the games that had been played, based on the `TurnCount` value that was encoded 
-within byte 2 of the resolved IP addresses for each response.
+    # Make sure the packet meets the valid response criteria
+    # (i.e. the packet's resolved IP is a properly formed response for the game)
+    ip_bytes = [int(x) for x in packet.an.rdata.split('.')]
 
-When I found a complete set of moves, that is a game for which there were 15 consecutive moves, I was able to manually run the decode operation using the key from each packet, to 
-decode a copy of `localEncodedFlag` and print it to the screen. I won't go into too much more detail, but a copy of this script is included below for clarity.
+    # Check byte 0 (must be 127 - loopback address)
+    if ip_bytes[0] != 127:
+        continue
 
+    # Check byte 3 (must be even for non-resignation)
+    if (ip_bytes[3] & 1) == 1:
+        continue
 
+    # Check byte 2 ()
+    turn_count = ip_bytes[2] & 0x0F
+    print('turn count: {}'.format(turn_count))
+```
 
+The output from this script shows that there is a single packet for each value of `TurnCount` (encoded in byte 2 of the resolved IP address), between 0 and 14.
+
+```
+turn count: 4
+turn count: 1
+turn count: 6
+turn count: 5
+turn count: 11
+turn count: 3
+turn count: 12
+turn count: 13
+turn count: 10
+turn count: 8
+turn count: 9
+turn count: 14
+turn count: 7
+turn count: 2
+turn count: 0
+```
+
+Now we have a collection of valid responses, we can use these to decode the `localEncodedFlag`, which has been recreated as a python `bytearray` object. 
+The script below can be used to fully decode the flag based on the packets contained in `capture.pcap`.
+
+``` python
+import sys
+from scapy.all import rdpcap, DNSRR
+
+localEncodedFlag = [0x79, 0x5A, 0xB8, 0xBC, 0xEC, 0xD3, 0xDF, 0xDD, 0x99, 0xA5,
+                    0xB6, 0xAC, 0x15, 0x36, 0x85, 0x8D, 0x09, 0x08, 0x77, 0x52,
+                    0x4D, 0x71, 0x54, 0x7D, 0xA7, 0xA7, 0x08, 0x16, 0xFD, 0xD7]
+
+localDecodedFlag = bytearray(len(localEncodedFlag)) + bytearray(b"@flare-on.com")
+
+# argv[1] = "./path/to/capture.pcap"
+pcap_file_path = sys.argv[1]
+
+for packet in rdpcap(pcap_file_path):
+    # ignore the packet if it isn't a DNS response
+    if not packet.haslayer(DNSRR) or not isinstance(packet.an, DNSRR):
+        continue
+
+    # Make sure the packet meets the valid response criteria
+    # (i.e. the packet's resolved IP is a properly formed response for the game)
+    ip_bytes = [int(x) for x in packet.an.rdata.split('.')]
+
+    # Check byte 0 (must be 127 - loopback address)
+    if ip_bytes[0] != 127:
+        continue
+
+    # Check byte 3 (must be even for non-resignation packets)
+    if (ip_bytes[3] & 1) == 1:
+        continue
+
+    # Extract the turn count from byte 2
+    turn_count = ip_bytes[2] & 0x0F
+
+    # Extract the key byte from the IP address
+    turn_key = ip_bytes[1]
+
+    # Use the key to decode the relevant 2 bytes of the encoded flag
+    localDecodedFlag[turn_count * 2] = turn_key ^ localEncodedFlag[turn_count * 2]
+    localDecodedFlag[(turn_count * 2) + 1] = turn_key ^ localEncodedFlag[(turn_count * 2) + 1]
+
+print(localDecodedFlag.decode())
+
+```
 
 ## Tools Used
 Tool name|URL (if necessary)
