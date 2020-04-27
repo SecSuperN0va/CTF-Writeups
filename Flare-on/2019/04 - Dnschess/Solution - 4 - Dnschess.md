@@ -305,3 +305,4 @@ Tool name|URL (if necessary)
 :---|:---
 IDA Pro | https://www.hex-rays.com/products/ida/
 Wireshark | https://www.wireshark.org/
+Scapy | https://pypi.org/project/scapy/
